@@ -1,4 +1,5 @@
 const express = require("express");
+require("dotenv").config()
 const morgan = require("morgan");
 const helmet = require("helmet");
 const compression = require("compression");
@@ -9,7 +10,7 @@ app.use(morgan("combined"));
 app.use(helmet());
 app.use(compression());
 //init db
-
+require("./db/init.mongodb");
 //handle errors
 
 //handle routes
