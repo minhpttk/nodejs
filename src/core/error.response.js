@@ -1,8 +1,6 @@
 'use strict'
 
 const STATUS_CODE = {
-    OK: 200,
-    CREATED: 201,
     BAD_REQUEST: 400,
     UNAUTHORIZED: 401,
     FORBIDDEN: 403,
@@ -11,8 +9,6 @@ const STATUS_CODE = {
     INTERNAL_SERVER_ERROR: 500
 }
 const ReasonStatusCode = {
-    OK: 'OK',
-    CREATED: 'Created',
     BAD_REQUEST: 'Bad Request',
     UNAUTHORIZED: 'Unauthorized',
     FORBIDDEN: 'Forbidden',
