@@ -6,20 +6,15 @@ const compression = require("compression");
 const app = express();
 
 // init middleware
-app.use(morgan("combined"));
+app.use(morgan("dev"));
 app.use(helmet());
 app.use(compression());
+app.use(express.json());
+app.use(express.urlencoded({extended: true}))
 //init db
 require("./db/init.mongodb");
 //handle errors
 
 //handle routes
-app.get("/", (req, res, next) => {
-    const strCompress = "Hello hhihiih"
-    return res.status(200).json({
-        message: "Hello world",
-        metadata: strCompress.repeat(1000)
-    });
-});
-
+app.use("/", require("./routes"))
 module.exports = app;
