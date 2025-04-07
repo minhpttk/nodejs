@@ -25,6 +25,15 @@ class AccessController {
             }
         }).send(res)
     }
+
+    logout = async (req, res, next) => {
+        const {keyStore} = req
+        const dataResponse = await accessService.logout({keyStore})
+        return new OK({
+            message: 'Shop logged out successfully',
+            metadata: dataResponse
+        }).send(res)
+    }
 }
 
 module.exports = new AccessController()
