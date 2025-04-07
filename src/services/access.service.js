@@ -8,6 +8,8 @@ const { createTokenPair } = require("../auth/authUtils")
 const { getInfoData } = require("../utils")
 const { BadRequestError, AuthFailureError } = require('../core/error.response')
 const { findByEmail } = require('./shop.service')
+const { ForbiddenError } = require('../core/error.response')
+const { verifyJWT } = require('../auth/authUtils')
 
 const RoleShop = {
     SHOP: 'SHOP',
@@ -107,6 +109,43 @@ class AccessService {
         const delkey = await KeyTokenService.removeKeyById(keyStore._id)
         console.log(delkey)
         return delkey
+    }
+
+    static handleRefreshToken = async(refreshToken) => {
+        // 1 Kiểm tra refresh token đã được sử dụng chưa
+        const checkRefreshTokenUsed = await KeyTokenService.checkRefreshTokenUsed(refreshToken)
+        if (checkRefreshTokenUsed) {
+            // decode xem user có trong hệ thống không
+            const {userId, email} = await verifyJWT(refreshToken, checkRefreshTokenUsed.privateKey)
+            // xóa record key store
+            await KeyTokenService.deleteKeyByUserId(userId)
+            throw new ForbiddenError('Something wrong happend!! Please relogin')
+        }
+
+        // 2 Kiểm tra refresh token có hợp lệ không
+        const holdToken = await KeyTokenService.findByRefreshToken(refreshToken)
+        if (!holdToken) throw new AuthFailureError('Shop not registered')
+        // 3 Verify token
+        const {userId, email} = await verifyJWT(refreshToken, holdToken.privateKey)
+        // 4 check user có tồn tại không
+        const holderShop = await findByEmail({email})
+        if (!holderShop) throw new AuthFailureError('Shop not found')
+        // 5 tạo token mới
+        const tokens = await createTokenPair({userId, email}, holdToken.publicKey, holdToken.privateKey)
+        // 6 update key store
+        await holdToken.update({
+            $set: {
+                refreshToken: tokens.refreshToken
+            },
+            $addToSet: {
+                refreshTokenUsed : refreshToken // thêm vào list refresh token đã được sử dụng
+            }
+        })
+        
+        return {
+            user: {userId, email},
+            tokens
+        }
     }
 }
 
