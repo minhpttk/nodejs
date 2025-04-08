@@ -3,6 +3,8 @@
 const JWT = require('jsonwebtoken')
 const asyncHandler = require('../helper/asyncHandler')
 const KeyTokenService = require('../services/keyToken.service')
+const {AuthFailureError} = require('../core/error.response')
+
 
 const HEADER = {
     API_KEY: 'x-api-key',
@@ -43,8 +45,9 @@ const authenication = asyncHandler(async (req, res, next) => {
     }
     //2 Get access token
     const keyStore = await KeyTokenService.findByUserId(userId)
+    console.log("log")
     if (!keyStore) throw new AuthFailureError('Shop not registered')
-    //3 Verify token is not expired
+        //3 Verify token is not expired
     const accessToken = req.headers[HEADER.AUTHORIZATION]?.toString()
     if (!accessToken) throw new AuthFailureError('Invalid Request')
     try {
