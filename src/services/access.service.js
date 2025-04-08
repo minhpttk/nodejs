@@ -10,6 +10,7 @@ const { BadRequestError, AuthFailureError } = require('../core/error.response')
 const { findByEmail } = require('./shop.service')
 const { ForbiddenError } = require('../core/error.response')
 const { verifyJWT } = require('../auth/authUtils')
+const keyTokenModel = require("../models/keytoken.model")
 
 const RoleShop = {
     SHOP: 'SHOP',
@@ -107,7 +108,6 @@ class AccessService {
     }
     static logout = async({ keyStore}) => {
         const delkey = await KeyTokenService.removeKeyById(keyStore._id)
-        console.log(delkey)
         return delkey
     }
 
@@ -133,14 +133,18 @@ class AccessService {
         // 5 tạo token mới
         const tokens = await createTokenPair({userId, email}, holdToken.publicKey, holdToken.privateKey)
         // 6 update key store
-        await holdToken.update({
-            $set: {
-                refreshToken: tokens.refreshToken
+        await keyTokenModel.findOneAndUpdate(
+            { _id: holdToken._id },
+            {
+                $set: {
+                    refreshToken: tokens.refreshToken
+                },
+                $addToSet: {
+                    refreshTokenUsed: refreshToken
+                }
             },
-            $addToSet: {
-                refreshTokenUsed : refreshToken // thêm vào list refresh token đã được sử dụng
-            }
-        })
+            { new: true } // Trả về document sau khi update
+        );
         
         return {
             user: {userId, email},

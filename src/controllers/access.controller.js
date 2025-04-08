@@ -34,6 +34,14 @@ class AccessController {
             metadata: dataResponse
         }).send(res)
     }
+    handleRefreshToken = async (req, res, next) => {
+        const refreshToken = req.body.refreshToken
+        const dataResponse = await accessService.handleRefreshToken(refreshToken)
+        return new OK({
+            message: 'Shop refresh token successfully',
+            metadata: dataResponse
+        }).send(res)
+    }
 }
 
 module.exports = new AccessController()
